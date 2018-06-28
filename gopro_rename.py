@@ -35,7 +35,7 @@ import datetime
 #   copy (complete with all metadata)
 
 
-def compile_filename(filename, directory=''):
+def compile_filename(filename, directory='.'):
 
 
     # check for single video or photo
@@ -392,9 +392,6 @@ def create_sorted_lists(filelist):
     return chap_vid_group_dict, burst_time_lapsed_dict, record_3d_dict, single_element_list, filelist
 
 
-
-
-
 def get_creation_date(filepath):
     timestamp = os.path.getctime(filepath)
     return datetime.datetime.fromtimestamp(timestamp)
@@ -430,5 +427,8 @@ if __name__ == '__main__':
 #    print(gen_rnd_file_list())
 #    print(gen_rnd_chap_list(number_of_files=10))
     print(gen_rnd_burst_loop_list())
+    
+    
+
     
     

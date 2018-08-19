@@ -287,11 +287,38 @@ def gen_rnd_burst_loop_list(number_of_files=10):
 
 
 def gen_rnd_3d_list(number_of_files=10):
+    """ Generate a random filename list for 3D mode.
+    
+    Returns
+    -------
+    list
+        a list with random and valid GoPro string names for videos or photos 
+        in 3D mode.
+    """
+    
     
     #TODO: make a function to simulate a list with 3d entries.
-    record_3d_dict = {}
+    rnd_3d_list = []
     
-    return record_3d_dict
+    for ii in range(number_of_files):
+        
+        # the number 10000 is not include in the list.
+        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
+        
+        # select randomly MP4 or JPG files.bursr
+        if bool(random.randrange(0,2,1)):
+            ext_name = 'MP4'
+        else:
+            ext_name = 'JPG'
+        
+        
+        filename_r = '3D_R{0:04}.{1}'.format(rnd_4digit_num, ext_name)
+        filename_l = '3D_L{0:04}.{1}'.format(rnd_4digit_num, ext_name)
+        
+        rnd_3d_list.append(filename_r)
+        rnd_3d_list.append(filename_l)
+            
+    return rnd_3d_list
 
 
 def create_sorted_lists(filelist):

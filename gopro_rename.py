@@ -95,88 +95,14 @@ Single Photo    GOPRxxxx.jpg
 
 
 def generate_random_test_names():
-    test_file_list()
-    return
-
-
-def gen_rnd_file_list(number_of_files=10):
+    """ Return a manual test list for filename detection. 
     
-    rnd_single_files = []
-    
-    
-    for ii in range(number_of_files):
-        
-        # the number 10000 is not include in the list.
-        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
-        
-        if bool(random.randrange(0,2,1)):
-            ext_name = 'MP4'
-        else:
-            ext_name = 'JPG'
-        
-        
-        filename = 'GOPR{0:d}.{1}'.format(rnd_4digit_num, ext_name)
-        
-        rnd_single_files.append(filename)
-    
-    return rnd_single_files
-    
-
-def gen_rnd_chap_list(number_of_files=10):
-    
-    rnd_chap_list = []
-    
-    
-    for ii in range(number_of_files):
-        
-        # the number 10000 is not include in the list.
-        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
-        
-        ext_name = 'MP4'
-
-        filename = 'GOPR{0:4d}.{1}'.format(rnd_4digit_num, ext_name)
-        rnd_chap_list.append(filename)
-
-        max_chap = 10
-        number_of_sub_chap = random.randrange(start=1, stop=max_chap+1, step=1)
-        
-        
-        for jj in range(number_of_sub_chap):
-            
-        
-            filename = 'GO{0:2d}{1:4d}.{2}'.format(jj, rnd_4digit_num, ext_name)
-            rnd_chap_list.append(filename)
-    
-    return rnd_chap_list
-
-
-def gen_rnd_burst_loop_list(number_of_files=10):
-    
-    rnd_burst_loop_list = []
-    
-    for ii in range(number_of_files):
-        
-        # the number 10000 is not include in the list.
-        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
-        
-        if bool(random.randrange(0,2,1)):
-            ext_name = 'MP4'
-        else:
-            ext_name = 'JPG'
-        
-        max_chap = 10
-        number_of_bursts = random.randrange(start=1, stop=max_chap+1, step=1)
-        
-        offset = random.randrange(start=0, stop=1000-max_chap, step=1)
-        
-        for jj in range(number_of_bursts):
-            
-        
-            filename = 'G{0:3}{1:4d}.{2}'.format(offset+jj, rnd_4digit_num, ext_name)
-        
-            rnd_burst_loop_list.append(filename)
-    
-    return rnd_burst_loop_list
+    Returns
+    -------
+    list
+        a test file list with string entries
+    """
+    return test_file_list
 
 
 test_file_list = [
@@ -256,8 +182,145 @@ test_file_list = [
 
 
 
-def create_sorted_lists(filelist):
+def gen_rnd_file_list(number_of_files=10):
+    """ Generate a random file list of single photos and videos
+    
+    Returns
+    -------
+    list
+        a list with random valid GoPro string names for single photos and videos        
     """
+    
+    rnd_single_files = []
+    
+    
+    for ii in range(number_of_files):
+        
+        # the number 10000 is not include in the list.
+        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
+        
+        if bool(random.randrange(0,2,1)):
+            ext_name = 'MP4'
+        else:
+            ext_name = 'JPG'
+        
+        
+        filename = 'GOPR{0:d}.{1}'.format(rnd_4digit_num, ext_name)
+        
+        rnd_single_files.append(filename)
+    
+    return rnd_single_files
+    
+
+def gen_rnd_chap_list(number_of_files=10):
+    """ Generate a random chaptered list of only videos
+    
+    Returns
+    -------
+    list
+        a list with random and valid GoPro string names for chaptered videos. 
+    """
+    
+    rnd_chap_list = []
+    
+    
+    for ii in range(number_of_files):
+        
+        # the number 10000 is not include in the list.
+        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
+        
+        ext_name = 'MP4'
+
+        # the first file looks like a normal file
+        filename = 'GOPR{0:04d}.{1}'.format(rnd_4digit_num, ext_name)
+        rnd_chap_list.append(filename)
+
+        max_chap = 10
+        number_of_sub_chap = random.randrange(start=1, stop=max_chap+1, step=1)
+        
+        
+        for jj in range(number_of_sub_chap):
+            
+            # All the other chapter have the same last digit number
+            filename = 'GP{0:02d}{1:04d}.{2}'.format(jj, rnd_4digit_num, ext_name)
+            rnd_chap_list.append(filename)
+    
+    return rnd_chap_list
+
+
+def gen_rnd_burst_loop_list(number_of_files=10):
+    """ Generate a random filename list for burst mode.
+    
+    Returns
+    -------
+    list
+        a list with random and valid GoPro string names for videos or photos 
+        in burst mode.
+    """
+    rnd_burst_loop_list = []
+    
+    for ii in range(number_of_files):
+        
+        # the number 10000 is not include in the list.
+        rnd_4digit_num = random.randrange(start=0, stop=10000, step=1)
+        
+        # select randomly MP4 or JPG files.bursr
+        if bool(random.randrange(0,2,1)):
+            ext_name = 'MP4'
+        else:
+            ext_name = 'JPG'
+        
+        max_chap = 10
+        number_of_bursts = random.randrange(start=1, stop=max_chap+1, step=1)
+        
+        offset = random.randrange(start=0, stop=1000-max_chap, step=1)
+        
+        for jj in range(number_of_bursts):
+            
+        
+            filename = 'G{0:03}{1:04d}.{2}'.format(offset+jj, rnd_4digit_num, ext_name)
+            # pad with zeros if number is smaller.
+        
+            rnd_burst_loop_list.append(filename)
+    
+    return rnd_burst_loop_list
+
+
+def gen_rnd_3d_list(number_of_files=10):
+    
+    #TODO: make a function to simulate a list with 3d entries.
+    record_3d_dict = {}
+    
+    return record_3d_dict
+
+
+def create_sorted_lists(filelist):
+    """ Main logic to sort a given filelist into
+    
+    Parameters
+    ----------
+    
+    Returns
+    -------
+    (dict_1, dict_2, dict_3, list_1, list_2)
+        with the following meaning:
+            
+        dict_1: chap_vid_group_dict, the keys of the dict correspond to the 
+                file number <zzzz>, which relates all the chapters to a group.
+                The values are a list of strings which belong to the group.
+        dict_2: burst_time_lapsed_dict, they keys
+        dict_3: record_3d_dict, the keys of the dict correspond to the 
+        list4: single_element_list, 
+        list5: filelist
+            
+        
+        chap_vid_group_dict, burst_time_lapsed_dict, record_3d_dict, single_element_list, filelist
+            
+    
+    
+    Further description
+    -------------------
+    
     This logic applies to Camera Models: 
         HD HERO2, HERO3, HERO3+, HERO (2014), HERO Session, HERO4, 
         HERO5 Black, HERO5 Session.
@@ -266,14 +329,25 @@ def create_sorted_lists(filelist):
 
         GP<xx><zzzz>.MP4  ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<xx>_<zzzz>.MP4
 
+        Note that the first part of such series will be translated as
+
+        GP<xx><zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_000_<zzzz>.<ext>
 
     2. Burst, time-lapsed pictures or looping videos become
 
-        G<yyy><zzzz>.<ext>  ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<yyy>_<zzzz>.MP4
+        G<yyy><zzzz>.<ext>  ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<yyy>_<zzzz>.<ext>
 
-    Note that the first part of such series will be translated as
+    3. 3d videos or photos become
+    
+        3D_<D><zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<zzzz>_<D>.<ext>
 
-        GP<xx><zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_000_<zzzz>.MP4
+    4. single photos and videos become
+    
+        GOPR<zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<zzzz>.<ext>
+
+
+
+
 
     explicitly with file
 
@@ -284,6 +358,7 @@ def create_sorted_lists(filelist):
         <xx>        placeholder for xx chapternumber
         <yyy>       placeholder for yyy burst number
         <zzzz>      placeholder for zzzz file number
+        <D>         placeholder for direction, R or L in the 3d record
         <YYYY>      year placeholder
         <MM>        month placeholder
         <DD>        day placeholder
@@ -291,8 +366,6 @@ def create_sorted_lists(filelist):
         <mm>        minutes placeholder
         <ss>        second placeholder  
         
-
-
 
 
     <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<NN>.MP4
@@ -307,6 +380,32 @@ def create_sorted_lists(filelist):
     # check at first chaptered videos:
     # ================================
 
+    filelist, chap_vid_group_dict = find_chaptered_videos(filelist, chap_vid_group_dict)
+
+    # extract now the burst/time-lapse/looping items:
+    # ===============================================
+
+    filelist, burst_time_lapsed_dict = find_burst_items(filelist, burst_time_lapsed_dict)
+
+    # extract now the 3D recordings:
+    # ==============================
+
+    filelist, record_3d_dict = find_3d_records(filelist, record_3d_dict)
+
+    # finally, extract the single video/photos:
+    #==========================================
+
+    filelist, single_element_list = find_single_items(filelist, single_element_list)
+    
+    # return also the list of the remaining, unextracted files
+
+    return chap_vid_group_dict, burst_time_lapsed_dict, record_3d_dict, single_element_list, filelist
+
+# =============================================================================
+# Indiviuduell finding algorithms
+
+def find_chaptered_videos(filelist, chap_vid_group_dict={}):
+    
     # need to reverse the iteration prozess to remove entries while stepping
     for entry in reversed(filelist):
         # check for chaptered video
@@ -322,7 +421,7 @@ def create_sorted_lists(filelist):
                 chap_vid_group_dict[file_number].insert(0, entry)
 
             filelist.remove(entry)
-
+            
     # include also the first video to the dict
     for file_number in chap_vid_group_dict:
 
@@ -331,31 +430,39 @@ def create_sorted_lists(filelist):
         if first_video in filelist:
             filelist.remove(first_video)
             chap_vid_group_dict[file_number].insert(0, first_video)
+    
+    return filelist, chap_vid_group_dict
 
-    # extract now the burst/time-lapse/looping items:
-    # ===============================================
 
+def find_burst_items(filelist, burst_time_lapsed_dict={}):
+    
     # need to reverse the iteration prozess to remove entries while stepping
     for entry in reversed(filelist):
 
         match = re.match('G(\d{3})(\d{4})(\..*)', entry)
+        
         if match:
-            
-            group_number = match.group(1)
+            group_number = match.group(2)
+            #print('group_number: ', group_number)
             
             if burst_time_lapsed_dict.get(group_number) is None:
+                #print('create new dict entry:', entry)
+                
                 burst_time_lapsed_dict[group_number] = [entry]
             else:
+                #print('insert entry in dict:', entry)
+                
                 # since the element 'entry' is iterated
                 # reversely, it has to be appened at first place
                 burst_time_lapsed_dict[group_number].insert(0, entry)
                 
             filelist.remove(entry)
-
-
-    # extract now the 3D recordings:
-    # ==============================
-
+    
+    return filelist, burst_time_lapsed_dict
+    
+def find_3d_records(filelist, record_3d_dict):
+    
+    # need to reverse the iteration prozess to remove entries while stepping
     for entry in reversed(filelist):
         match = re.match('3D_(R|L)(\d{4})(\..*)', entry)
         if match:
@@ -373,23 +480,102 @@ def create_sorted_lists(filelist):
         
             filelist.remove(entry)
 
+    
+    return filelist, record_3d_dict
 
-
-    # finally, extract the single video/photos:
-    #==========================================
-
+def find_single_items(filelist, single_element_list=[]):
+    
     for entry in reversed(filelist):
         match = re.match('GOPR(\d{4})(\..*)', entry)
         if match:
             single_element_list.insert(0, entry)
             
             filelist.remove(entry)
-
     
-    # return also the list of the remaining, unextracted files
+    return filelist, single_element_list
+
+# Indiviuduell finding algorithms
+# =============================================================================
 
 
-    return chap_vid_group_dict, burst_time_lapsed_dict, record_3d_dict, single_element_list, filelist
+def map_chaptered_videos(chap_vid_group_dict, chap_vid_map_list=[]):
+    """
+        1. The Chaptered Video becomes
+
+        GP<xx><zzzz>.MP4  ===> <YYYY>-<MM>-<DD>_<hh>h-<mm>m-<ss>s_<xx>_<zzzz>.MP4
+        
+        Note that the first part of such series will be translated as
+
+        GOPR<zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_00_<zzzz>.<ext>
+    """
+    
+    
+    for entry in chap_vid_group_dict:
+        
+        for chap_name in chap_vid_group_dict[entry]:
+            
+            match = re.match('GP(\d{2})(\d{4})(\..*)', chap_name)
+            match_start_file = re.match('GOPR(\d{4})(\..*)', chap_name)
+            
+            if match:
+                date_string = '{0}_{1}_{2}{3}'.format(format_timestamp(chap_name), 
+                                                      match.group(1),
+                                                      match.group(2),
+                                                      match.group(3))
+                # make a file list map to what the file should be renamed
+                chap_vid_map_list.append([chap_name, date_string])
+                
+            elif match_start_file:
+                
+                date_string = '{0}_00_{1}{2}'.format(format_timestamp(chap_name), 
+                                                      match.group(1),
+                                                      match.group(2))
+                # make a file list map to what the file should be renamed
+                chap_vid_map_list.append([chap_name, date_string])                
+                
+            else:
+                print('First file of chaptered videos does not exist.')
+#                raise Exception('First file of chaptered videos does not' 
+#                                'exist.')
+                
+    
+    return chap_vid_map_list
+
+
+def map_burst_items(burst_time_lapsed_dict, burst_map_list=[]):
+    """
+    2. Burst, time-lapsed pictures or looping videos become
+
+        G<yyy><zzzz>.<ext>  ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<yyy>_<zzzz>.<ext>
+
+    """
+    
+    
+    for entry in burst_time_lapsed_dict:
+        
+        for burst_name in burst_time_lapsed_dict[entry]:
+            
+            match = re.match('G(\d{3})(\d{4})(\..*)', burst_name)
+            
+            date_string = '{0}_{1}_{2}{3}'.format(format_timestamp(burst_name), 
+                                                  match.group(1),
+                                                  match.group(2),
+                                                  match.group(3))
+            
+            # make a file list map to what the file should be renamed
+            burst_map_list.append([burst_name, date_string])
+    
+    return burst_map_list
+
+
+def map_3d_records(record_3d_dict, ):
+    """
+        3. 3d videos or photos become
+    
+        3D_<D><zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<zzzz>_<D>.<ext>
+    """
+    
+    return
 
 
 def get_creation_date(filepath):
@@ -426,7 +612,8 @@ if __name__ == '__main__':
     
 #    print(gen_rnd_file_list())
 #    print(gen_rnd_chap_list(number_of_files=10))
-    print(gen_rnd_burst_loop_list())
+#    print(gen_rnd_burst_loop_list())
+    pass
     
     
 

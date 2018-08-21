@@ -28,6 +28,8 @@ import shutil
 import random
 import datetime
 
+from PIL import Image
+
 # options to implement:
 #   dryrun
 #   force, overwrite exsiting files
@@ -180,6 +182,8 @@ test_file_list = [
 
 ]
 
+# =============================================================================
+# Random file list generation to test the find and sort algorithm
 
 
 def gen_rnd_file_list(number_of_files=10):
@@ -205,7 +209,7 @@ def gen_rnd_file_list(number_of_files=10):
             ext_name = 'JPG'
         
         
-        filename = 'GOPR{0:d}.{1}'.format(rnd_4digit_num, ext_name)
+        filename = 'GOPR{0:04d}.{1}'.format(rnd_4digit_num, ext_name)
         
         rnd_single_files.append(filename)
     
@@ -321,6 +325,24 @@ def gen_rnd_3d_list(number_of_files=10):
     return rnd_3d_list
 
 
+def gen_rnd_mix_list(num_of_files=10):
+    
+    filelist = gen_rnd_file_list(num_of_files)
+    filelist.extend(gen_rnd_chap_list(num_of_files))
+    filelist.extend(gen_rnd_burst_loop_list(num_of_files))
+    filelist.extend(gen_rnd_3d_list(num_of_files))
+
+    # in place randomization of filelist
+    random.shuffle(filelist)
+    
+    return filelist
+
+    
+
+# Random file list generation to test the find and sort algorithm
+# =============================================================================
+
+
 def create_sorted_lists(filelist):
     """ Main logic to sort a given filelist into
     
@@ -374,10 +396,6 @@ def create_sorted_lists(filelist):
 
 
 
-
-
-    explicitly with file
-
     The following filename descripton are used:
 
 
@@ -393,10 +411,6 @@ def create_sorted_lists(filelist):
         <mm>        minutes placeholder
         <ss>        second placeholder  
         
-
-
-    <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<NN>.MP4
-    <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_c<NN>.MP4
     """
 
     chap_vid_group_dict = {}
@@ -412,7 +426,7 @@ def create_sorted_lists(filelist):
     # extract now the burst/time-lapse/looping items:
     # ===============================================
 
-    filelist, burst_time_lapsed_dict = find_burst_items(filelist, burst_time_lapsed_dict)
+    filelist, burst_time_lapsed_dict = map_burst_items(filelist, burst_time_lapsed_dict)
 
     # extract now the 3D recordings:
     # ==============================
@@ -427,6 +441,46 @@ def create_sorted_lists(filelist):
     # return also the list of the remaining, unextracted files
 
     return chap_vid_group_dict, burst_time_lapsed_dict, record_3d_dict, single_element_list, filelist
+
+
+def search_and_rename(filelist):
+    
+    
+    chap_vid_group_dict = {}
+    single_element_list = []
+    burst_time_lapsed_dict = {}
+    record_3d_dict = {}
+    
+    rename_pattern_list = []
+
+    # check at first chaptered videos:
+    # ================================
+
+    filelist, chap_vid_group_dict = find_chaptered_videos(filelist, chap_vid_group_dict)
+    rename_pattern_list = map_chaptered_videos(chap_vid_group_dict, rename_pattern_list)
+
+    # extract now the burst/time-lapse/looping items:
+    # ===============================================
+
+    filelist, burst_time_lapsed_dict = find_burst_items(filelist, burst_time_lapsed_dict)
+    rename_pattern_list = map_burst_items(burst_time_lapsed_dict, rename_pattern_list)
+    
+    # extract now the 3D recordings:
+    # ==============================
+
+    filelist, record_3d_dict = find_3d_records(filelist, record_3d_dict)
+    rename_pattern_list = map_3d_records(record_3d_dict, rename_pattern_list)
+    
+    # finally, extract the single video/photos:
+    #==========================================
+
+    filelist, single_element_list = find_single_items(filelist, single_element_list)
+    rename_pattern_list = map_single_items(single_element_list, rename_pattern_list)
+     
+    # return also the list of the remaining, unextracted files
+    
+    return rename_pattern_list
+
 
 # =============================================================================
 # Indiviuduell finding algorithms
@@ -469,7 +523,7 @@ def find_burst_items(filelist, burst_time_lapsed_dict={}):
         match = re.match('G(\d{3})(\d{4})(\..*)', entry)
         
         if match:
-            group_number = match.group(2)
+            group_number = match.group(1)
             #print('group_number: ', group_number)
             
             if burst_time_lapsed_dict.get(group_number) is None:
@@ -487,7 +541,7 @@ def find_burst_items(filelist, burst_time_lapsed_dict={}):
     
     return filelist, burst_time_lapsed_dict
     
-def find_3d_records(filelist, record_3d_dict):
+def find_3d_records(filelist, record_3d_dict={}):
     
     # need to reverse the iteration prozess to remove entries while stepping
     for entry in reversed(filelist):
@@ -524,6 +578,9 @@ def find_single_items(filelist, single_element_list=[]):
 # Indiviuduell finding algorithms
 # =============================================================================
 
+
+# =============================================================================
+# Indiviuduell mapping algorithms
 
 def map_chaptered_videos(chap_vid_group_dict, chap_vid_map_list=[]):
     """
@@ -595,20 +652,57 @@ def map_burst_items(burst_time_lapsed_dict, burst_map_list=[]):
     return burst_map_list
 
 
-def map_3d_records(record_3d_dict, ):
+def map_3d_records(record_3d_dict, record_3d_map_list=[]):
     """
         3. 3d videos or photos become
     
         3D_<D><zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<zzzz>_<D>.<ext>
     """
     
-    return
+    for entry in record_3d_dict:
+        
+        for name_3d in record_3d_dict[entry]:
+            
+            match = re.match('3D_(R|L)(\d{4})(\..*)', name_3d)
+            
+            date_string = '{0}_{1}_{2}{3}'.format(format_timestamp(name_3d), 
+                                                  match.group(2),
+                                                  match.group(1),
+                                                  match.group(3))
+            
+            record_3d_map_list.append([name_3d, date_string])
+    
+    return record_3d_map_list
+
+
+def map_single_items(single_item_list, single_item_map_list=[]):
+    """ 
+        4. single photos and videos become
+    
+        GOPR<zzzz>.<ext> ===> <YYYY>-<MM>-<DD>_<hh>H-<mm>m-<ss>s_<zzzz>.<ext>
+    
+    """
+    
+    for entry in single_item_list:
+        match = re.match('GOPR(\d{4})(\..*)', entry)
+        date_string = '{0}_{1}{2}'.format(format_timestamp(entry), 
+                                              match.group(1),
+                                              match.group(2))
+        
+        single_item_map_list.append([entry, date_string])
+        
+    return single_item_map_list 
+        
+
+
+# Indiviuduell mapping algorithms
+# =============================================================================
+
 
 
 def get_creation_date(filepath):
     timestamp = os.path.getctime(filepath)
     return datetime.datetime.fromtimestamp(timestamp)
-
 
 def format_timestamp(filepath):
     datetime_obj = get_creation_date(filepath)
@@ -616,6 +710,29 @@ def format_timestamp(filepath):
 
 def copy_with_meta(old_filename, new_filename):
     return shutil.copy2(old_filename, new_filename) 
+
+def rename_filename(pattern_map_list):
+    """ A rename method. """
+    try:
+        os.rename(pattern_map_list[0], pattern_map_list[1])
+    except Exception as exp:
+        print('Cannot rename file "{0}" ==> "{1}". The following error '
+              'occured: {2}'.format(pattern_map_list[0],
+                                    pattern_map_list[1],
+                                    exp))
+
+def get_date_taken(path):
+    return Image.open(path)._getexif()[36867]
+
+def extract_files_in_folder(path):
+    
+    return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+def extract_video_information():
+    """
+    ffprobe GOPR8685.MP4 -v quiet -print_format json -show_streams > info.txt
+    """
+    pass
 
 
 def extract_from_files(test_file_list):
@@ -640,8 +757,21 @@ if __name__ == '__main__':
 #    print(gen_rnd_file_list())
 #    print(gen_rnd_chap_list(number_of_files=10))
 #    print(gen_rnd_burst_loop_list())
-    pass
     
+    folderpath = os.path.abspath(r'C:\Users\AlexS\Desktop\test2')
+    os.chdir(folderpath)
+    print(os.path.abspath(os.curdir))
+    filelist = extract_files_in_folder(folderpath)
+    print(filelist)
+    
+    rename_pattern_list = search_and_rename(filelist)
+    
+#    for rename_pattern in rename_pattern_list:
+#        rename_filename(rename_pattern)
+    
+    
+    
+
     
 
     

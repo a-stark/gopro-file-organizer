@@ -38,6 +38,9 @@ from PIL import Image
 #   verbose
 #   copy (complete with all metadata)
 
+__version__ = 0.1
+__author__ = 'Alexander Stark'
+
 
 def compile_filename(filename, directory='.'):
 

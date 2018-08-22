@@ -27,6 +27,8 @@ import re
 import shutil
 import random
 import datetime
+import subprocess
+import json
 
 from PIL import Image
 
@@ -602,7 +604,7 @@ def map_chaptered_videos(chap_vid_group_dict, chap_vid_map_list=[]):
             match_start_file = re.match('GOPR(\d{4})(\..*)', chap_name)
             
             if match:
-                date_string = '{0}_{1}_{2}{3}'.format(format_timestamp(chap_name), 
+                date_string = '{0}_{1}_{2}{3}'.format(get_date_taken(chap_name), 
                                                       match.group(1),
                                                       match.group(2),
                                                       match.group(3))
@@ -611,7 +613,7 @@ def map_chaptered_videos(chap_vid_group_dict, chap_vid_map_list=[]):
                 
             elif match_start_file:
                 
-                date_string = '{0}_00_{1}{2}'.format(format_timestamp(chap_name), 
+                date_string = '{0}_00_{1}{2}'.format(get_date_taken(chap_name), 
                                                       match.group(1),
                                                       match.group(2))
                 # make a file list map to what the file should be renamed
@@ -641,7 +643,7 @@ def map_burst_items(burst_time_lapsed_dict, burst_map_list=[]):
             
             match = re.match('G(\d{3})(\d{4})(\..*)', burst_name)
             
-            date_string = '{0}_{1}_{2}{3}'.format(format_timestamp(burst_name), 
+            date_string = '{0}_{1}_{2}{3}'.format(get_date_taken(burst_name), 
                                                   match.group(1),
                                                   match.group(2),
                                                   match.group(3))
@@ -665,7 +667,7 @@ def map_3d_records(record_3d_dict, record_3d_map_list=[]):
             
             match = re.match('3D_(R|L)(\d{4})(\..*)', name_3d)
             
-            date_string = '{0}_{1}_{2}{3}'.format(format_timestamp(name_3d), 
+            date_string = '{0}_{1}_{2}{3}'.format(get_date_taken(name_3d), 
                                                   match.group(2),
                                                   match.group(1),
                                                   match.group(3))
@@ -685,7 +687,7 @@ def map_single_items(single_item_list, single_item_map_list=[]):
     
     for entry in single_item_list:
         match = re.match('GOPR(\d{4})(\..*)', entry)
-        date_string = '{0}_{1}{2}'.format(format_timestamp(entry), 
+        date_string = '{0}_{1}{2}'.format(get_date_taken(entry), 
                                               match.group(1),
                                               match.group(2))
         
@@ -722,17 +724,70 @@ def rename_filename(pattern_map_list):
                                     exp))
 
 def get_date_taken(path):
-    return Image.open(path)._getexif()[36867]
-
-def extract_files_in_folder(path):
     
-    return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    extension = path[-3:].lower() # either MP4 or JPG
+    
+    if extension == 'mp4':
+        res = get_creation_date_vid(path)
+    elif extension == 'jpg':
+        res = get_creation_date_img(path)
+    else:
+        raise Exception('What is this for an extension??? "{0}" was given!'.format(extension))
+        
+    return res
+    
 
-def extract_video_information():
+
+def get_creation_date_img(path):
+    
+    creation_date = Image.open(path)._getexif()[36867]
+    
+    creation_date_dt = datetime.datetime.strptime(creation_date, '%Y:%m:%d %H:%M:%S')
+    
+    return creation_date_dt.strftime('%Y-%m-%d_%Hh%Mm%Ss')
+
+
+def get_creation_date_vid(path):
     """
     ffprobe GOPR8685.MP4 -v quiet -print_format json -show_streams > info.txt
     """
-    pass
+    
+    command = ['ffprobe', path, '-v', 'quiet', '-print_format', 'json',
+               '-show_streams']
+    ffmpeg = subprocess.Popen(command, stderr=subprocess.PIPE, 
+                              stdout=subprocess.PIPE)
+    out, err = ffmpeg.communicate()
+    
+    meta_dict = json.loads(out.decode())
+    
+    # it is enough to look at the first stream.
+    raw_date = meta_dict['streams'][0]['tags']['creation_time']
+    
+    # in the first part is the date and the time:
+    striped_date = raw_date[0:19]
+    
+    creation_date_dt = datetime.datetime.strptime(striped_date, '%Y-%m-%dT%H:%M:%S')
+    
+    return creation_date_dt.strftime('%Y-%m-%d_%Hh%Mm%Ss')
+
+
+def get_all_files_in_folder(path):
+    
+    return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+def extract_video_information(path):
+    """
+    ffprobe <filename> -v quiet -print_format json -show_streams > info.txt
+    """
+    
+    command = ['ffprobe', path, '-v', 'quiet', '-print_format', 'json',
+               '-show_streams']
+    
+    ffmpeg = subprocess.Popen(command, stderr=subprocess.PIPE, 
+                              stdout=subprocess.PIPE)
+    out, err = ffmpeg.communicate()
+    
+    return out.decode()
 
 
 def extract_from_files(test_file_list):
@@ -761,13 +816,13 @@ if __name__ == '__main__':
     folderpath = os.path.abspath(r'C:\Users\AlexS\Desktop\test2')
     os.chdir(folderpath)
     print(os.path.abspath(os.curdir))
-    filelist = extract_files_in_folder(folderpath)
+    filelist = get_all_files_in_folder(folderpath)
     print(filelist)
     
     rename_pattern_list = search_and_rename(filelist)
     
-#    for rename_pattern in rename_pattern_list:
-#        rename_filename(rename_pattern)
+    for rename_pattern in rename_pattern_list:
+        rename_filename(rename_pattern)
     
     
     
